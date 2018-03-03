@@ -1,0 +1,15 @@
+Package: BooST
+Type: Package
+Title: Boosting Smooth Trees (BooST)
+Version: 0.1.0
+Authors@R: c(person("Yuri R.", "Fonseca", email="yuriresendefonseca@outlook.com", role = c("aut")),person("Gabriel F. R.", "Vasconcelos", email="gabrielrvsc@yahoo.com.br", role = c("aut", "cre")))
+Maintainer: Gabriel F. R. Vasconcelos <gabrielrvsc@yahoo.com.br>
+BugReports: https://github.com/gabrielrvsc/BooST/issues
+Description: Set of functions to estimate and analyse the BooST and individual Smooth Trees. The package has functions to estimate the models, predict and estimate the partial effects. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    Matrix,
+    magrittr
+RoxygenNote: 6.0.1
