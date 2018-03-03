@@ -8,7 +8,7 @@
 #' @param v Learning rate (default 0.2).
 #' @param p Proportion of variables tested in each node split (default 2/3).
 #' @param d_max Number of nodes in each tree (default 4). If NULL each tree will have a random number of nodes between 4 and 8.
-#' @param gamma aa
+#' @param gamma Transiction function intensity. Bigger numbers makes the transition less smoth. The default is NULL to randomize gamma in each node.
 #' @param M Number of trees.
 #' @param display If TRUE, displays iteration counter.
 #' @param stochastic If TRUE the model will be estimated using Stochasting Gradient Boosting.
