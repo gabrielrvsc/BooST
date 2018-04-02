@@ -8,11 +8,12 @@
 #' @param v Learning rate (default 0.2).
 #' @param p Proportion of variables tested in each node split (default 2/3).
 #' @param d_max Number of nodes in each tree (default 4). If NULL each tree will have a random number of nodes between 4 and 8.
-#' @param gamma Transiction function intensity. Bigger numbers makes the transition less smoth. The default is NULL to randomize gamma in each node.
+#' @param gamma Transiction function intensity. Bigger numbers makes the transition less smoth. The default is a sequence of values to be randomized in each new node.
 #' @param M Number of trees.
 #' @param display If TRUE, displays iteration counter.
 #' @param stochastic If TRUE the model will be estimated using Stochasting Gradient Boosting.
 #' @param s_prop Used only if stochastic=TRUE. Determines the proportion of data used in each tree.
+#' @param tol relative tol for the BFGS in the optim function. See ?optim for details
 #'
 #' @return An object with S3 class "Boost".
 #' \item{Model}{A list with all trees.}
@@ -36,10 +37,9 @@
 # @seealso \code{\link{predict.BooST}}, \code{\link{smooth_tree}}, \code{\link{derivative_expression}}, \code{\link{estimate_derivative}}
 
 
-
-BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = NULL,
+BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,10,0.01),
          M = 300, display=FALSE,
-         stochastic=FALSE,s_prop=0.5) {
+         stochastic=FALSE,s_prop=0.5,tol=1e-4,analitical_grad=FALSE) {
 
   d_max=d_max-1
   N=length(y)
@@ -53,7 +53,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = NULL,
     for(i in 1:M){
       s=sample(1:N,floor(N*s_prop),replace = FALSE)
       u=y-phi
-      step=grow_tree(x=x[s,],y=u[s],p=p,d_max=d_max,gamma=gamma)
+      step=grow_tree(x=x[s,],y=u[s],p=p,d_max=d_max,gamma=gamma,tol=tol,analitical_grad)
       fitstep=eval_tree(x,step[[1]],step)
       rho=stats::coef(stats::lm(y[s]-phi[s]~-1+fitstep[s]))
 
@@ -70,7 +70,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = NULL,
 
     for(i in 1:M){
       u=y-phi
-      step=grow_tree(x=x,y=u,p=p,d_max=d_max,gamma=gamma)
+      step=grow_tree(x=x,y=u,p=p,d_max=d_max,gamma=gamma,tol=tol,analitical_grad)
       fitstep=eval_tree(x,step[[1]],step)
       rho=stats::coef(stats::lm(y-phi~-1+fitstep))
       phi=phi+v*rho*fitstep

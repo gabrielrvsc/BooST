@@ -3,14 +3,16 @@
 new_node=function(tree, variable, left = NA, right = NA, parent = NA,
          gamma, location, beta0, beta1, side = NA, variance = NA){
 
+  d = length(tree) + 1
+
   node = list('variable' = variable,
               'left' = left, 'right' = right,
               'parent' = parent, 'gamma' = gamma,
               'location' = location,
               'beta0' = beta0, 'beta1' = beta1,
-              'side' = side, 'variance' = variance)
+              'side' = side, 'variance' = variance, "id"=d)
 
-  d = length(tree) + 1
+
 
   tree[[d]] <- node
 
@@ -26,7 +28,13 @@ new_node=function(tree, variable, left = NA, right = NA, parent = NA,
   return(tree)
 }
 
-grow_tree=function(x, y, p, d_max, gamma){
+grow_tree=function(x, y, p, d_max, gamma,tol,analitical_grad){
+
+  if(analitical_grad==FALSE){
+    grr=NULL
+  }else{
+    grr=objective_gradient
+  }
 
   if(length(d_max)==0){
     d_max=sample(3:7,1)
@@ -37,20 +45,17 @@ grow_tree=function(x, y, p, d_max, gamma){
   #### CRIAR PRIMEIRO NODE
 
   variables = sample(ncol(x), round(p*ncol(x)))
-  par.start = c(0, 0, 0)
-  if(is.null(gamma)){
-    first_gamma=stats::runif(1,0.5,10)
-  }else{
-    first_gamma = gamma
-  }
+  first_gamma=sample(gamma,1)
   first_node = list()
 
-
+  #par.start=c(0,0,0)
   for (i in 1:length(variables)) {
-    first_node[[i]] = stats::optim(par = par.start, fn = objective, method = 'BFGS',
+    par.start = c(sample(x[,variables[i]],1), sample(y,2))
+
+    first_node[[i]] = stats::optim(par = par.start, fn = objective, gr=grr, method = 'BFGS',
                             x = x, y = y, tree = tree, variable = variables[i], parent = NA,
-                            gamma = first_gamma, side = NA
-                            ,control=list(reltol=1e-4))
+                            gamma = first_gamma*max(IQR(x[,variables[i]]),0.1), side = NA
+                            ,control=list(reltol=tol))
   }
   best_fit = which.min(lapply(first_node, function(x) x$value))
 
@@ -67,7 +72,7 @@ grow_tree=function(x, y, p, d_max, gamma){
   #### GROWTH and STOP criteria
   tree = new_tree
   for(i in 1:d_max){
-    tree <- grow_node(x = x, y = y, tree = tree, p = p, gamma = gamma)
+    tree <- grow_node(x = x, y = y, tree = tree, p = p, gamma = gamma, tol=tol,analitical_grad)
   }
 
   return(tree)
@@ -85,11 +90,35 @@ objective=function(par, x, y, tree, variable, side, gamma, parent){
   return(sum(residual))
 }
 
-grow_node=function(x, y, tree, gamma, p){
+objective_gradient=function(par, x, y, tree, variable, side, gamma, parent){
 
-  if(is.null(gamma)){
-    gamma=stats::runif(1,0.5,10)
+  grr = c()
+  gradient = list()
+
+  new_tree = new_node(tree = tree, variable = variable, side = side,
+                      gamma = gamma, location = par[1], beta0 = par[2],
+                      beta1 = par[3], parent = parent)
+
+  response = eval_tree(x, new_tree[[1]], new_tree)
+
+  chain_rule = eval_gradient_optim(par, x, new_tree[[1]], new_tree, gradient)
+
+  grr[1] = sum(-2*(y - response)*chain_rule$location)
+  grr[2] = sum(-2*(y - response)*chain_rule$beta0)
+  grr[3] = sum(-2*(y - response)*chain_rule$beta1)
+
+  return(grr)
+}
+
+grow_node=function(x, y, tree, gamma, p, tol,analitical_grad){
+
+  if(analitical_grad==FALSE){
+    grr=NULL
+  }else{
+    grr=objective_gradient
   }
+
+  gamma=sample(gamma,1)
 
   pos = data.frame('son' = rep(0, length(tree) + 1), 'parent' = rep(0, length(tree) + 1))
   colnames(pos) = c('son', 'parent')
@@ -116,12 +145,13 @@ grow_node=function(x, y, tree, gamma, p){
     set_colnames(c('side', 'parent', 'variable'))
 
 
-
+  #par=c(0,0,0)
   for (i in 1:nrow(comb)) {
-    fit[[i]] = stats::optim(par = rep(0, 3), fn = objective, method = 'BFGS',
-                     tree = tree, side = as.character(comb[i,'side']), gamma = gamma,
+    par = c(sample(x[,comb[i,'variable']],1), sample(y,2))
+    fit[[i]] = stats::optim(par = par, fn = objective, gr=grr, method = 'BFGS',
+                     tree = tree, side = as.character(comb[i,'side']), gamma = gamma*max(IQR(x[, comb[i,'variable']]),0.1),
                      variable = comb[i,'variable'], parent = comb[i,'parent'], x = x, y = y
-                     ,control=list(reltol=1e-4))
+                     ,control=list(reltol=tol))
   }
 
   best_fit = which.min(lapply(fit, function(x) x$value))
@@ -177,5 +207,37 @@ eval_tree=function(x, node, tree){
   final_fit = fit_right + fit_left
 
   return(final_fit)
+}
+
+eval_gradient_optim=function(par, x, node, tree, gradient){
+
+  if (node$id == length(tree)) {
+
+    gradient$beta1 = logit_func(x = x, node = node, side = 'right')
+    gradient$beta0 = logit_func(x = x, node = node, side = 'left')
+    func = exp(-node$gamma*(x-par[1]))
+    gradient$location = node$gamma*func*(par[2] - par[3])/((1+func)^2)
+
+  }
+
+  if (is.na(node$right) != TRUE) {
+
+    aux = eval_gradient_optim(par, x, node = tree[[node$right]], tree, gradient)
+    gradient$beta1 = logit_func(x = x, node = node, side = 'right')*aux$beta1
+    gradient$beta0 = logit_func(x = x, node = node, side = 'right')*aux$beta0
+    gradient$location = logit_func(x = x, node = node, side = 'right')*aux$location
+
+  }
+
+  if (is.na(node$left) != TRUE) {
+
+    aux = eval_gradient_optim(par, x, node = tree[[node$left]], tree, gradient)
+    gradient$beta1 = logit_func(x = x, node = node, side = 'left')*aux$beta1
+    gradient$beta0 = logit_func(x = x, node = node, side = 'left')*aux$beta0
+    gradient$location = logit_func(x = x, node = node, side = 'left')*aux$location
+
+  }
+
+  return(gradient)
 }
 
