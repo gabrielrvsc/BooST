@@ -9,13 +9,13 @@ grow_tree=function(x, y, p, d_max, gamma){
     xtest=x[,variables[i]]
     xtest=stats::runif(10,min(xtest)-0.1*stats::sd(xtest),max(xtest)+0.1*stats::sd(xtest))
 
-    gammascale=max(stats::IQR(x[,variables[i]]),0.5)
+    gammascale=max(stats::IQR(x[,variables[i]]),0.1)
     ssr=sapply(xtest,initial_node_var_test,x=x[,variables[i]],y=y,gamma=gammai*gammascale)
     ssr=t(ssr)
     best=which.min(ssr[,1])
-    res=c(xtest[best],gammai*gammascale,ssr[best,])
-    names(res)=c("c0","gamma","val","b0","b1")
-    fit[[i]]=res
+    res0=c(xtest[best],gammai*gammascale,ssr[best,])
+    names(res0)=c("c0","gamma","val","b0","b1")
+    fit[[i]]=res0
 
   }
   best=which.min(lapply(fit,function(x)x["val"]))
@@ -43,7 +43,6 @@ grow_tree=function(x, y, p, d_max, gamma){
 
     t1=Sys.time()
     fit=list()
-    i=1
     for(i in 1:nrow(test)){
       xt=x[,test[i,"variable"]]
       xtest=stats::runif(10,min(xt)-0.1*stats::sd(xt),max(xt)+0.1*stats::sd(xt))
@@ -55,6 +54,7 @@ grow_tree=function(x, y, p, d_max, gamma){
         ssr=sapply(xtest,node_var_test,x=x[,test[i,"variable"]],y=y,gamma=gammai*gammascale,Pmat=Pmat,
                    terminal=test$terminal[i],middlenodes=middlenodes)
         ssr=t(ssr)
+        ssr[is.nan(ssr)]=Inf
         best=which.min(ssr[,1])
         res=c(xtest[best],gammai*gammascale,ssr[best,])
         names(res)=c("c0","gamma","val","b0","b1")
@@ -172,8 +172,11 @@ initial_node_var_test=function(c0,x,y,gamma){
 }
 
 node_var_test=function(c0,x,y,gamma,Pmat,terminal,middlenodes){
-  b0=(1/(1+exp(-gamma*(x-c0))))*Pmat[,terminal]
-  b1=(1-b0)*Pmat[,terminal]
+  logit=1/(1+exp(-gamma*(x-c0)))
+  b0=logit*Pmat[,terminal]
+  b1=(1-logit)*Pmat[,terminal]
+  # b0=(1/(1+exp(-gamma*(x-c0))))*Pmat[,terminal]
+  # b1=(1-b0)*Pmat[,terminal]
   X=cbind(b0,b1,Pmat[,-c(terminal,middlenodes)])
   b=tryCatch(stats::coef(stats::.lm.fit(X,y)),error=function(e)Inf)
   if(is.infinite(b[1])){
