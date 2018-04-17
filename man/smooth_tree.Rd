@@ -4,7 +4,7 @@
 \alias{smooth_tree}
 \title{Estimate BooST}
 \usage{
-smooth_tree(x, y, p = 1, d_max = 4, gamma = NULL)
+smooth_tree(x, y, p = 1, d_max = 4, gamma = seq(0.5, 5, 0.01))
 }
 \arguments{
 \item{x}{Design matrix with explanatory variables.}
@@ -13,12 +13,12 @@ smooth_tree(x, y, p = 1, d_max = 4, gamma = NULL)
 
 \item{p}{Proportion of variables tested in each node split (default 1).}
 
-\item{d_max}{Number of nodes in each tree (default 4).}
+\item{d_max}{Number of splits in each tree (default 4).}
 
-\item{gamma}{aa}
+\item{gamma}{Transiction function intensity. Bigger numbers makes the transition less smoth. The default is a sequence of values (0.5:5) to be randomized in each new node. Multiple values may be supplied in a vector to increase the model randomness.}
 }
 \value{
-An object with S3 class "Boost".
+An object with S3 class "SmoothTree".
 \item{Model}{A list with all trees.}
 \item{fitted.values}{Final model fitted values.}
 \item{nvar}{Number of variables in x.}

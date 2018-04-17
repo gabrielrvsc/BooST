@@ -21,8 +21,8 @@ predict.SmoothTree=function(object,newx=NULL,...){
 
   if(is.vector(newx)){newx=matrix(newx,nrow=1)}
 
-  model=object$Model[[1]]
-  fitted.values=eval_tree(newx,model[[1]],model)
+  model=object$tree
+  fitted.values=eval_tree(newx,model)
 
   return(fitted.values)
 }

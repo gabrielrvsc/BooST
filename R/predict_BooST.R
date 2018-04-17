@@ -26,7 +26,7 @@ predict.BooST=function(object,newx=NULL,...){
   rho=object$rho
   model=object$Model
   rhov=rho*v
-  fitaux=t(t(Reduce("cbind",lapply(model,function(t)eval_tree(newx,t[[1]],t))))*rhov)
+  fitaux=t(t(Reduce("cbind",lapply(model,function(t)eval_tree(newx,t$tree))))*rhov)
   fitted.values=y0+rowSums(fitaux)
   return(fitted.values)
 }

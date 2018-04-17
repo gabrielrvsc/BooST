@@ -4,14 +4,14 @@
 \alias{estimate_derivatives}
 \title{Creates analytical expression for partial effects}
 \usage{
-estimate_derivatives(object, x, de_exp)
+estimate_derivatives(object, x, variable)
 }
 \arguments{
 \item{object}{A BooST or a SmoothTree object.}
 
 \item{x}{Matrix of obsevations where the partial derivatives are desired.}
 
-\item{de_exp}{Derivative expressions from the derivative_expression function.}
+\item{variable}{Index of the variable the partial effects should be estimated.}
 }
 \description{
 Creates analytical expression for partial effects estimation of a BoosT or a SmoothTree object.

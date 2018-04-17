@@ -5,28 +5,29 @@
 #'
 #' @param object A BooST or a SmoothTree object.
 #' @param x Matrix of obsevations where the partial derivatives are desired.
-#' @param de_exp Derivative expressions from the derivative_expression function.
+#' @param variable Index of the variable the partial effects should be estimated.
 #' @keywords BooST, Boosting, Smooth Tree, Partial Effects
 #' @export
 #' @examples
 #' ## == to be made == ##
 #'
-# @seealso \code{\link{BooST}}, \code{\link{smooth_tree}}, \code{\link{derivative_expression}}
+# @seealso \code{\link{BooST}}, \code{\link{smooth_tree}}
 
-estimate_derivatives=function(object,x,de_exp){
+estimate_derivatives=function(object,x,variable){
+  if(is.vector(x)){x=matrix(x,nrow=1)}
   if(class(object)=="BooST"){
     v=object$v
     rho=object$rho
+    vrho=v*rho
+    partialeffects=lapply(object$Model,function(z) gradient_st(z,x,variable) )
+    for(i in 1:length(partialeffects)){
+      partialeffects[[i]]=partialeffects[[i]]*vrho[i]
+    }
+    partialeffects=Reduce('+',partialeffects)
   }
   if(class(object)=="SmoothTree"){
-    v=1
-    rho=1
+    partialeffects=gradient_st(object,x,variable)
   }
-  if(is.vector(x)){x=matrix(x,nrow=1)}
-  partial_effects=apply(x,1,function(x){
-    eval_gradient(de_exp, x ,v=v,rho=rho)
-  })
-  partial_effects=t(partial_effects)
-  colnames(partial_effects)=object$varnames
-  return(partial_effects)
+  colnames(partialeffects)=colnames(x)[variable]
+  return(partialeffects)
 }

@@ -4,8 +4,8 @@
 \alias{BooST}
 \title{Estimate BooST}
 \usage{
-BooST(x, y, v = 0.2, p = 2/3, d_max = 4, gamma = NULL, M = 300,
-  display = FALSE, stochastic = FALSE, s_prop = 0.5)
+BooST(x, y, v = 0.2, p = 2/3, d_max = 4, gamma = seq(0.5, 5, 0.01),
+  M = 300, display = FALSE, stochastic = FALSE, s_prop = 0.5)
 }
 \arguments{
 \item{x}{Design matrix with explanatory variables.}
@@ -16,9 +16,9 @@ BooST(x, y, v = 0.2, p = 2/3, d_max = 4, gamma = NULL, M = 300,
 
 \item{p}{Proportion of variables tested in each node split (default 2/3).}
 
-\item{d_max}{Number of nodes in each tree (default 4). If NULL each tree will have a random number of nodes between 4 and 8.}
+\item{d_max}{Number of splits in each tree (default 4).}
 
-\item{gamma}{aa}
+\item{gamma}{Transiction function intensity. Bigger numbers makes the transition less smoth. The default is a sequence of values (0.5:5) to be randomized in each new node. Multiple values may be supplied in a vector to increase the model randomness.}
 
 \item{M}{Number of trees.}
 
