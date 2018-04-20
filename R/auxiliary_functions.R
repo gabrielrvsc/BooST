@@ -164,6 +164,10 @@ initial_node_var_test=function(c0,x,y,gamma){
   b0=logit;b1=1-logit
   X=cbind(b0,b1)
   #b=solve(t(X)%*%X)%*%t(X)%*%y
+  rank=Matrix::rankMatrix(t(X)%*%X,tol=1e-6)
+  if(rank<ncol(X)){
+    return(c(Inf,rep(NA,ncol(X))))
+  }
   b=tryCatch(stats::coef(stats::.lm.fit(X,y)),error=function(e)Inf)
   if(is.infinite(b[1])){
     return(c(b[1],rep(NA,ncol(X))))
@@ -178,6 +182,10 @@ node_var_test=function(c0,x,y,gamma,Pmat,terminal,middlenodes){
   # b0=(1/(1+exp(-gamma*(x-c0))))*Pmat[,terminal]
   # b1=(1-b0)*Pmat[,terminal]
   X=cbind(b0,b1,Pmat[,-c(terminal,middlenodes)])
+  rank=Matrix::rankMatrix(t(X)%*%X,tol=1e-6)
+  if(rank<ncol(X)){
+    return(c(Inf,rep(NA,ncol(X))))
+  }
   b=tryCatch(stats::coef(stats::.lm.fit(X,y)),error=function(e)Inf)
   if(is.infinite(b[1])){
     return(c(b[1],rep(NA,ncol(X))))
