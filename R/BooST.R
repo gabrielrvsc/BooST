@@ -63,7 +63,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
       brmse[i]=sqrt(mean((y-phitest)^2))
 
       if(i>1){
-        if(brmse[i]/brmse[i-1]>1.05){
+        if(brmse[i]/brmse[i-1]>1.02){
           rho=0
           phitest=phi+v*rho*fitstep
           savetree[[i]]=step
@@ -74,7 +74,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
       phi=phitest
       save_rho[i]=rho
       if(display==TRUE){
-        cat(i,"\n")
+        cat(i," RMSE = ",brmse[i],"\n")
       }
 
     }
@@ -102,7 +102,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
       phi=phitest
       save_rho[i]=rho
       if(display==TRUE){
-        cat(i,"\n")
+        cat(i," RMSE = ",brmse[i],"\n")
       }
     }
 
