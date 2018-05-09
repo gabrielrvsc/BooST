@@ -38,7 +38,7 @@
 
 BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
                  M = 300, display=FALSE,
-                 stochastic=FALSE,s_prop=0.5) {
+                 stochastic=FALSE,s_prop=0.5, node_obs=nrow(x)/200) {
 
   d_max=d_max-1
   N=length(y)
@@ -54,7 +54,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
       s=sample(1:N,floor(N*s_prop),replace = FALSE)
       u=y-phi
 
-      step=grow_tree(x=x[s,],y=u[s],p=p,d_max=d_max,gamma=gamma)
+      step=grow_tree(x=x[s,],y=u[s],p=p,d_max=d_max,gamma=gamma,node_obs=node_obs)
       fitstep=eval_tree(x,step$tree)
       rho=stats::coef(stats::lm(y[s]-phi[s]~-1+fitstep[s]))
 
@@ -83,7 +83,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
 
     for(i in 1:M){
       u=y-phi
-      step=grow_tree(x=x,y=u,p=p,d_max=d_max,gamma=gamma)
+      step=grow_tree(x=x,y=u,p=p,d_max=d_max,gamma=gamma,node_obs=node_obs)
       fitstep=stats::fitted(step)
       rho=stats::coef(stats::lm(y-phi~-1+fitstep))
       phitest=phi+v*rho*fitstep

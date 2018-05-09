@@ -1,4 +1,4 @@
-grow_tree=function(x, y, p, d_max, gamma){
+grow_tree=function(x, y, p, d_max, gamma, node_obs){
   bf=0
   variables = sample(ncol(x), round(p*ncol(x)))#sort(sample(1:ncol(x), max(round(p*ncol(x)),2)  ))
   gammai=gamma[sample(1:length(gamma),1)]
@@ -9,8 +9,9 @@ grow_tree=function(x, y, p, d_max, gamma){
     #xtest=stats::runif(20,min(xtest)-0.1*stats::sd(xtest),max(xtest)+0.1*stats::sd(xtest))
     xtest=sample(xtest,20)
 
-    gammascale=max(stats::IQR(x[,variables[i]]),0.1)
-    ssr=sapply(xtest,initial_node_var_test,x=x[,variables[i]],y=y,gamma=gammai/gammascale)
+    #gammascale=max(stats::IQR(x[,variables[i]]),0.5)
+    gammascale=max(stats::sd(x[,variables[i]]),0.1)
+    ssr=sapply(xtest,initial_node_var_test,x=x[,variables[i]],y=y,gamma=gammai/gammascale,node_obs=node_obs)
     ssr=t(ssr)
     best=which.min(ssr[,1])
     res0=c(xtest[best],gammai/gammascale,ssr[best,])
@@ -48,13 +49,13 @@ grow_tree=function(x, y, p, d_max, gamma){
       #xtest=stats::runif(10,min(xt)-0.1*stats::sd(xt),max(xt)+0.1*stats::sd(xt))
       xtest=sample(xt,20,prob = Pmat[,test$terminal[i]]+0.01)
 
-      gammascale=max(stats::IQR(xt),0.1)
+      gammascale=max(stats::sd(xt),0.1)
       middlenodes=which(is.na(colSums(Pmat)))
       if(length(xtest)<=1){
         fit[[i]]=c(val=Inf)
       }else{
         ssr=sapply(xtest,node_var_test,x=x[,test[i,"variable"]],y=y,gamma=gammai/gammascale,Pmat=Pmat,
-                   terminal=test$terminal[i],middlenodes=middlenodes,deep=tree$deep[test$terminal[i]])
+                   terminal=test$terminal[i],middlenodes=middlenodes,deep=tree$deep[test$terminal[i]],node_obs=node_obs)
         ssr=t(ssr)
         ssr[is.nan(ssr)]=Inf
         best=which.min(ssr[,1])
@@ -102,13 +103,13 @@ grow_tree=function(x, y, p, d_max, gamma){
   return(result)
 }
 
-initial_node_var_test=function(c0,x,y,gamma){
+initial_node_var_test=function(c0,x,y,gamma,node_obs){
   logit=1/(1+exp(-gamma*(x-c0)))
   b0=logit;b1=1-logit
   X=cbind(b0,b1)
   l0=length(which(b0>=0.5))
   l1=length(which(b1>=0.5))
-  if(l0<nrow(X)/200 | l1<nrow(X)/200){
+  if(l0<nrow(X)/200 | l1<node_obs){
     return(c(Inf,rep(NA,ncol(X))))
   }
   b=tryCatch(stats::coef(stats::.lm.fit(X,y)),error=function(e)Inf)
@@ -118,7 +119,7 @@ initial_node_var_test=function(c0,x,y,gamma){
   c(sum((y-X%*%b)^2),b)
 }
 
-node_var_test=function(c0,x,y,gamma,Pmat,terminal,middlenodes,deep){
+node_var_test=function(c0,x,y,gamma,Pmat,terminal,middlenodes,deep,node_obs){
   logit=1/(1+exp(-gamma*(x-c0)))
   b0=logit*Pmat[,terminal]
   b1=(1-logit)*Pmat[,terminal]
@@ -127,7 +128,7 @@ node_var_test=function(c0,x,y,gamma,Pmat,terminal,middlenodes,deep){
   X=cbind(b0,b1,Pmat[,-c(terminal,middlenodes)])
   l0=length(which(b0>=0.5^deep))
   l1=length(which(b1>=0.5^deep))
-  if(l0<nrow(X)/200 | l1<nrow(X)/200){
+  if(l0<nrow(X)/200 | l1<node_obs){
     return(c(Inf,rep(NA,ncol(X))))
   }
   b=tryCatch(stats::coef(stats::.lm.fit(X,y)),error=function(e)Inf)

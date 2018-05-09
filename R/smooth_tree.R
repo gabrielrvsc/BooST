@@ -26,8 +26,8 @@
 # @seealso \code{\link{BooST}}, \code{\link{predict.SmoothTree}},  \code{\link{estimate_derivative}}
 
 
-smooth_tree=function(x, y, p = 1, d_max = 4, gamma = seq(0.5,5,0.01)){
-  tree=grow_tree(x,y, p = p, d_max = d_max, gamma = gamma)
+smooth_tree=function(x, y, p = 1, d_max = 4, gamma = seq(0.5,5,0.01),node_obs=nrow(x)/200){
+  tree=grow_tree(x,y, p = p, d_max = d_max, gamma = gamma, node_obs=node_obs)
   fitted.values=tree$fitted.values
   result=list(tree=tree$tree, fitted.values=fitted.values, nvar = ncol(x) , varnames=colnames(x) ,call=match.call())
   class(result)="SmoothTree"
