@@ -3,5 +3,6 @@
 S3method(predict,BooST)
 S3method(predict,SmoothTree)
 export(BooST)
+export(BooST.more)
 export(estimate_derivatives)
 export(smooth_tree)

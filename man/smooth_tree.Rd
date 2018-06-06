@@ -4,7 +4,8 @@
 \alias{smooth_tree}
 \title{Estimate BooST}
 \usage{
-smooth_tree(x, y, p = 1, d_max = 4, gamma = seq(0.5, 5, 0.01))
+smooth_tree(x, y, p = 1, d_max = 4, gamma = seq(0.5, 5, 0.01),
+  node_obs = nrow(x)/200)
 }
 \arguments{
 \item{x}{Design matrix with explanatory variables.}

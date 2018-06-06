@@ -128,7 +128,7 @@ node_var_test=function(c0,x,y,gamma,Pmat,terminal,middlenodes,deep,node_obs){
   X=cbind(b0,b1,Pmat[,-c(terminal,middlenodes)])
   l0=length(which(b0>=0.5^deep))
   l1=length(which(b1>=0.5^deep))
-  if(l0<nrow(X)/200 | l1<node_obs){
+  if(l0<node_obs | l1<node_obs){
     return(c(Inf,rep(NA,ncol(X))))
   }
   b=tryCatch(stats::coef(stats::.lm.fit(X,y)),error=function(e)Inf)

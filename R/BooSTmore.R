@@ -1,19 +1,11 @@
-#' Estimate BooST
+#' Adds more trees to an estimated BooST object
 #'
-#' Estimates Boosting of Smooth Trees (BooST)
-#'
+#' Adds more trees to an estimated BooST object
 #'
 #' @param x Design matrix with explanatory variables.
 #' @param y Response variable.
-#' @param v Learning rate (default 0.2).
-#' @param p Proportion of variables tested in each node split (default 2/3).
-#' @param d_max Number of splits in each tree (default 4).
-#' @param gamma Transiction function intensity. Bigger numbers makes the transition less smoth. The default is a sequence of values (0.5:5) to be randomized in each new node. Multiple values may be supplied in a vector to increase the model randomness.
 #' @param M Number of trees.
 #' @param display If TRUE, displays iteration counter.
-#' @param stochastic If TRUE the model will be estimated using Stochasting Gradient Boosting.
-#' @param s_prop Used only if stochastic=TRUE. Determines the proportion of data used in each tree.
-#' @param node_obs Equivalent to the minimum number of observations in a termina node for a discrete tree.
 #'
 #' @return An object with S3 class "Boost".
 #' \item{Model}{A list with all trees.}
@@ -37,21 +29,36 @@
 # @seealso \code{\link{predict.BooST}}, \code{\link{smooth_tree}}, \code{\link{estimate_derivative}}
 
 
-BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
-                 M = 300, display=FALSE,
-                 stochastic=FALSE,s_prop=0.5, node_obs=nrow(x)/200) {
+BooST.more = function(x, y, object, M, display = FALSE) {
+
+  if(class(object)!="BooST"){
+    stop("Object must be of class BooST")
+  }
+
+  params=as.list(object$call)
+
+  d_max = ifelse(is.null(params$d_max),4,params$d_max)
+  gamma = if(is.null(params$gamma)){seq(0.5,5,0.01)}else{eval(params$gamma)}
+  Mold = ifelse(is.null(params$M),300,params$M)
+  stochastic = ifelse(is.null(params$stochastic),FALSE,params$stochastic)
+  s_prop = ifelse(is.null(params$s_prop),0.5,params$s_prop)
+  node_obs = ifelse(is.null(params$node_obs),nrow(x)/200,params$node_obs)
+  p = ifelse(is.null(params$p),2/3,params$p)
+  v = ifelse(is.null(params$v),0.2,params$v)
+
+  save_rho=object$rho
+  ybar = object$ybar
 
   d_max=d_max-1
   N=length(y)
-  phi=rep(mean(y),length(y))
+  phi=predict(object,x)
 
-  brmse=rep(NA,M)
-  savetree=list()
-  save_rho=rep(NA,M)
-
+  brmse=object$brmse
+  savetree=object$Model
+  sq=seq(Mold+1,Mold+M,1)
 
   if(stochastic==TRUE){
-    for(i in 1:M){
+    for(i in sq){
       s=sample(1:N,floor(N*s_prop),replace = FALSE)
       u=y-phi
 
@@ -82,7 +89,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
 
   }else{
 
-    for(i in 1:M){
+    for(i in sq){
       u=y-phi
       step=grow_tree(x=x,y=u,p=p,d_max=d_max,gamma=gamma,node_obs=node_obs)
       fitstep=stats::fitted(step)
@@ -109,7 +116,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
 
   }
 
-  result=list(Model=savetree,fitted.values=phi,brmse=brmse,ybar=mean(y),v=v,rho=save_rho,nvar=ncol(x),varnames=colnames(x),call=match.call())
+  result=list(Model=savetree,fitted.values=phi,brmse=brmse,ybar=ybar,v=v,rho=save_rho,nvar=ncol(x),varnames=colnames(x),call=match.call())
   class(result)="BooST"
   return(result)
 }
