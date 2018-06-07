@@ -11,7 +11,7 @@ BooST.more(x, y, object, M, display = FALSE)
 
 \item{y}{Response variable.}
 
-\item{M}{Number of trees.}
+\item{M}{Number of trees to add.}
 
 \item{display}{If TRUE, displays iteration counter.}
 }

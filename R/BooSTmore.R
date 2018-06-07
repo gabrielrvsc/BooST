@@ -4,7 +4,7 @@
 #'
 #' @param x Design matrix with explanatory variables.
 #' @param y Response variable.
-#' @param M Number of trees.
+#' @param M Number of trees to add.
 #' @param display If TRUE, displays iteration counter.
 #'
 #' @return An object with S3 class "Boost".
@@ -116,7 +116,10 @@ BooST.more = function(x, y, object, M, display = FALSE) {
 
   }
 
-  result=list(Model=savetree,fitted.values=phi,brmse=brmse,ybar=ybar,v=v,rho=save_rho,nvar=ncol(x),varnames=colnames(x),call=match.call())
+  call=object$call
+  Mtot=M+Mold
+  call$M=Mtot
+  result=list(Model=savetree,fitted.values=phi,brmse=brmse,ybar=ybar,v=v,rho=save_rho,nvar=ncol(x),varnames=colnames(x),call=call)
   class(result)="BooST"
   return(result)
 }
