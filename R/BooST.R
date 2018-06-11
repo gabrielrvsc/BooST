@@ -25,6 +25,7 @@
 #' \item{rho}{Vector of gradient estimates for each iteration.}
 #' \item{nvar}{Numver of variables in x}
 #' \item{varnames}{colnames of x to be used in other functions.}
+#' \item{params}{Model parameters.}
 #' \item{call}{The matched call.}
 #' @keywords BooST, Boosting, Smooth Tree, Partial Effects
 #' @export
@@ -40,6 +41,9 @@
 BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
                  M = 300, display=FALSE,
                  stochastic=FALSE,s_prop=0.5, node_obs=nrow(x)/200) {
+
+  params = list(v=v,p=p,d_max=d_max,gamma=gamma,M=M,stochastic=stochastic,
+                s_prop=s_prop,node_obs=node_obs)
 
   d_max=d_max-1
   N=length(y)
@@ -109,7 +113,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
 
   }
 
-  result=list(Model=savetree,fitted.values=phi,brmse=brmse,ybar=mean(y),v=v,rho=save_rho,nvar=ncol(x),varnames=colnames(x),call=match.call())
+  result=list(Model=savetree,fitted.values=phi,brmse=brmse,ybar=mean(y),v=v,rho=save_rho,nvar=ncol(x),varnames=colnames(x),params = params ,call=match.call())
   class(result)="BooST"
   return(result)
 }

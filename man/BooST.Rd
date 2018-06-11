@@ -42,6 +42,7 @@ An object with S3 class "Boost".
 \item{rho}{Vector of gradient estimates for each iteration.}
 \item{nvar}{Numver of variables in x}
 \item{varnames}{colnames of x to be used in other functions.}
+\item{params}{Model parameters.}
 \item{call}{The matched call.}
 }
 \description{

@@ -2,12 +2,12 @@ grow_tree=function(x, y, p, d_max, gamma, node_obs){
   bf=0
   variables = sample(ncol(x), round(p*ncol(x)))#sort(sample(1:ncol(x), max(round(p*ncol(x)),2)  ))
   gammai=gamma[sample(1:length(gamma),1)]
-
+  N=length(y)
   fit=list()
   for(i in 1:length(variables)){
     xtest=x[,variables[i]]
     #xtest=stats::runif(20,min(xtest)-0.1*stats::sd(xtest),max(xtest)+0.1*stats::sd(xtest))
-    xtest=sample(xtest,20)
+    xtest=sample(xtest,min(20,N))
 
     #gammascale=max(stats::IQR(x[,variables[i]]),0.5)
     gammascale=max(stats::sd(x[,variables[i]]),0.1)
@@ -47,7 +47,7 @@ grow_tree=function(x, y, p, d_max, gamma, node_obs){
     for(i in 1:nrow(test)){
       xt=x[,test[i,"variable"]]
       #xtest=stats::runif(10,min(xt)-0.1*stats::sd(xt),max(xt)+0.1*stats::sd(xt))
-      xtest=sample(xt,20,prob = Pmat[,test$terminal[i]]+0.01)
+      xtest=sample(xt,min(20,N),prob = Pmat[,test$terminal[i]]+0.01)
 
       gammascale=max(stats::sd(xt),0.1)
       middlenodes=which(is.na(colSums(Pmat)))
@@ -148,7 +148,7 @@ grow_tree_complex=function(x, y, p, d_max, gamma){
   for(i in 1:length(variables)){
     xtest=unique(sort(x[,variables[i]]))
     if(length(xtest)>10){
-      xtest=xtest[quantile(1:length(xtest),probs = seq(0,1,0.1))]
+      xtest=xtest[stats::quantile(1:length(xtest),probs = seq(0,1,0.1))]
     }
     gammascale=max(stats::IQR(x[,variables[i]]),0.1)
     ssr=sapply(xtest,initial_node_var_test,x=x[,variables[i]],y=y,gamma=gammai*gammascale)
@@ -203,7 +203,7 @@ grow_tree_complex=function(x, y, p, d_max, gamma){
       }
       xtest=setdiff(xtest,used)
       if(length(xtest)>10){
-        xtest=xtest[quantile(1:length(xtest),probs = seq(0,1,0.1))]
+        xtest=xtest[stats::quantile(1:length(xtest),probs = seq(0,1,0.1))]
       }
       gammascale=max(stats::IQR(xt),0.1)
       middlenodes=which(is.na(colSums(Pmat)))

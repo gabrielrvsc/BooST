@@ -11,6 +11,8 @@ BooST.more(x, y, object, M, display = FALSE)
 
 \item{y}{Response variable.}
 
+\item{object}{BooST output object.}
+
 \item{M}{Number of trees to add.}
 
 \item{display}{If TRUE, displays iteration counter.}
@@ -26,6 +28,7 @@ An object with S3 class "Boost".
 \item{rho}{Vector of gradient estimates for each iteration.}
 \item{nvar}{Numver of variables in x}
 \item{varnames}{colnames of x to be used in other functions.}
+\item{params}{Model parameters.}
 \item{call}{The matched call.}
 }
 \description{

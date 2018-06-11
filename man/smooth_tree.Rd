@@ -17,6 +17,8 @@ smooth_tree(x, y, p = 1, d_max = 4, gamma = seq(0.5, 5, 0.01),
 \item{d_max}{Number of splits in each tree (default 4).}
 
 \item{gamma}{Transiction function intensity. Bigger numbers makes the transition less smoth. The default is a sequence of values (0.5:5) to be randomized in each new node. Multiple values may be supplied in a vector to increase the model randomness.}
+
+\item{node_obs}{Equivalent to the minimum number of observations in a termina node for a discrete tree.}
 }
 \value{
 An object with S3 class "SmoothTree".

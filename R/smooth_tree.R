@@ -8,6 +8,7 @@
 #' @param p Proportion of variables tested in each node split (default 1).
 #' @param d_max Number of splits in each tree (default 4).
 #' @param gamma Transiction function intensity. Bigger numbers makes the transition less smoth. The default is a sequence of values (0.5:5) to be randomized in each new node. Multiple values may be supplied in a vector to increase the model randomness.
+#' @param node_obs Equivalent to the minimum number of observations in a termina node for a discrete tree.
 #'
 #' @return An object with S3 class "SmoothTree".
 #' \item{Model}{A list with all trees.}
