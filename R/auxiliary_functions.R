@@ -55,7 +55,7 @@ grow_tree=function(x, y, p, d_max, gamma, node_obs){
         fit[[i]]=c(val=Inf)
       }else{
         ssr=sapply(xtest,node_var_test,x=x[,test[i,"variable"]],y=y,gamma=gammai/gammascale,Pmat=Pmat,
-                   terminal=test$terminal[i],middlenodes=middlenodes,deep=tree$deep[test$terminal[i]],node_obs=node_obs)
+                   terminal=test$terminal[i],middlenodes=middlenodes,deep=tree$deep[test$terminal[i]]+1,node_obs=node_obs)
         ssr=t(ssr)
         ssr[is.nan(ssr)]=Inf
         best=which.min(ssr[,1])
