@@ -56,7 +56,8 @@ BooST.more = function(x, y, object, M, display = FALSE) {
   phi=stats::predict(object,x)
 
   brmse=object$brmse
-  savetree=object$Model
+  savetree = vector(mode = "list", length = M+Mold)
+  savetree[1:Mold] = object$Model
   sq=seq(Mold+1,Mold+M,1)
 
   if(stochastic==TRUE){

@@ -50,7 +50,7 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
   phi=rep(mean(y),length(y))
 
   brmse=rep(NA,M)
-  savetree=list()
+  savetree=vector(mode = "list", length = M)
   save_rho=rep(NA,M)
 
 
