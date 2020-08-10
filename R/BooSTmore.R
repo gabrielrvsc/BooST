@@ -47,9 +47,14 @@ BooST.more = function(x, y, object, M, display = FALSE) {
   node_obs = params$node_obs
   p = params$p
   v = params$v
-
+  random = params$random
   save_rho=object$rho
   ybar = object$ybar
+
+  if(random==TRUE){
+    grow_tree = grow_tree_random
+  }
+
 
   d_max=d_max-1
   N=length(y)

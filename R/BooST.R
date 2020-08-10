@@ -14,6 +14,7 @@
 #' @param stochastic If TRUE the model will be estimated using Stochasting Gradient Boosting.
 #' @param s_prop Used only if stochastic=TRUE. Determines the proportion of data used in each tree.
 #' @param node_obs Equivalent to the minimum number of observations in a termina node for a discrete tree.
+#' @param random If TRUE trees are grown randomly (default = FALSE)
 #'
 #' @return An object with S3 class "Boost".
 #' \item{Model}{A list with all trees.}
@@ -40,10 +41,10 @@
 
 BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
                  M = 300, display=FALSE,
-                 stochastic=FALSE,s_prop=0.5, node_obs=nrow(x)/200) {
+                 stochastic=FALSE,s_prop=0.5, node_obs=nrow(x)/200, random = FALSE) {
 
   params = list(v=v,p=p,d_max=d_max,gamma=gamma,M=M,stochastic=stochastic,
-                s_prop=s_prop,node_obs=node_obs)
+                s_prop=s_prop,node_obs=node_obs, random = random)
 
   d_max=d_max-1
   N=length(y)
@@ -52,7 +53,9 @@ BooST = function(x, y, v=0.2, p = 2/3, d_max = 4, gamma = seq(0.5,5,0.01),
   brmse=rep(NA,M)
   savetree=vector(mode = "list", length = M)
   save_rho=rep(NA,M)
-
+  if(random==TRUE){
+    grow_tree = grow_tree_random
+  }
 
   if(stochastic==TRUE){
     for(i in 1:M){

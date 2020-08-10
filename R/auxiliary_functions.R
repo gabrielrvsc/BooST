@@ -220,3 +220,181 @@ eval_tree=function(x,tree){
   return(fitted)
 }
 
+grow0_random = function(x,y,p,N,gamma,node_obs){
+  gammai=gamma[sample(1:length(gamma),1)]
+
+  variable = sample(ncol(x), 1)#sort(sample(1:ncol(x), max(round(p*ncol(x)),2)  ))
+
+
+  xtest=x[,variable]
+
+  good_tree = FALSE
+
+  while(good_tree==FALSE){
+
+    c0 = sample(xtest,1)
+
+    gammascale=max(stats::sd(xtest),0.1)
+
+    #ssr = initial_node_var_test(c0,xtest,y,gammai/gammascale,node_obs = node_obs)
+
+    res=c(c0,gammai/gammascale,NA,NA,NA)
+    names(res)=c("c0","gamma","val","b0","b1")
+
+    node = res
+
+    nodeleft=data.frame("side" = 1,"b" = node["b0"],"c0" = node["c0"],gamma = node["gamma"]
+                        , "parent" = 0, "terminal" = "yes", variable = variable, id = 1,deep=1)
+    noderight=data.frame(side = 2,  "b" = node["b1"],"c0" = node["c0"],gamma = node["gamma"]
+                         , "parent" = 0, "terminal" = "yes", variable = variable, id = 2,deep=1)
+    tree=rbind(nodeleft,noderight)
+    tree$terminal=as.character(tree$terminal)
+
+    Pmat=1/(1+exp(-node["gamma"]*(x[,variable]-node["c0"])))
+
+    l0=length(which(Pmat>=0.5^nodeleft$deep))
+    if(l0<node_obs){
+      good_tree = FALSE
+    }else{
+      good_tree = TRUE
+    }
+
+  }
+
+  Pmat=cbind(Pmat,1-Pmat)
+
+  return(list(tree = tree, Pmat=Pmat))
+}
+
+grow_random = function(x,y,p,N,gamma,node_obs,tree,Pmat,d_max,iter){
+  gammai=gamma[sample(1:length(gamma),1)]
+  terminal=which(tree$terminal=="yes")
+
+  variable = sample(ncol(x), 1)
+  test=expand.grid(variable,terminal)
+  colnames(test)=c("variable","terminal")
+  xtest = x[,variable]
+
+  good_tree = FALSE
+
+  while(good_tree==FALSE){
+    splitnode = sample(terminal,1)
+    gammascale=max(stats::sd(xtest),0.1)
+    middlenodes=which(is.na(colSums(Pmat)))
+
+    c0 = sample(xtest,1)
+
+    res=c(c0,gammai/gammascale,NA,NA,NA)
+    names(res)=c("c0","gamma","val","b0","b1")
+
+
+    node=res
+
+
+    nodeleft=data.frame("side" = 1,"b" = node["b0"],"c0" = node["c0"],gamma = node["gamma"]
+                        , "parent" = splitnode, "terminal" = "yes", variable = variable,id=nrow(tree)+1,
+                        deep=tree$deep[splitnode]+1)
+    noderight=data.frame(side = 2,  "b" = node["b1"],"c0" = node["c0"],gamma = node["gamma"]
+                         , "parent" = splitnode, "terminal" = "yes", variable = variable,id=nrow(tree)+2,
+                         deep=tree$deep[splitnode]+1)
+
+
+
+    p0=(1/(1+exp(-node["gamma"]*(x[,nodeleft$variable]-node["c0"]))))*Pmat[,splitnode]
+    p1=(1-(1/(1+exp(-node["gamma"]*(x[,noderight$variable]-node["c0"])))))*Pmat[,splitnode]
+
+    l0=length(which(p0>=0.5^nodeleft$deep))
+    l1=length(which(p1>=0.5^noderight$deep))
+    if(l0<node_obs | l1<node_obs){
+      good_tree = FALSE
+    }else{
+      good_tree = TRUE
+    }
+
+  }
+  tree$terminal[splitnode]="no"
+
+  tree=rbind(tree,nodeleft,noderight)
+
+  Pmat=cbind(Pmat,p0,p1)
+  Pmat[,splitnode]=NA
+  iter=iter+1
+  return(list(tree = tree, Pmat = Pmat, iter = iter))
+}
+
+grow_tree_random=function(x, y, p, d_max, gamma, node_obs){
+
+  N=length(y)
+
+  t0 = grow0_random(x,y,p,N,gamma,node_obs)
+  tree = t0$tree
+  Pmat = t0$Pmat
+
+  ################
+  iter=1
+  while(iter<=d_max){
+    titer=grow_random(x,y,p,N,gamma,node_obs,tree,Pmat,d_max,iter)
+    tree = titer$tree
+    Pmat = titer$Pmat
+    iter = titer$iter
+  }
+  Pmat[is.na(Pmat)]=0
+
+  ##
+
+  betas = coef(lm.fit(Pmat,y, tol = 1e-3))
+  betas[is.na(betas)] = 0
+  tree$b = betas
+
+  fitted=Pmat%*%tree$b
+  result=list(tree=tree,fitted.values=fitted)
+  return(result)
+}
+
+
+
+
+grow_tree_random_aux=function(x, y, p, d_max, gamma, node_obs){
+
+  N=length(y)
+
+  crit = 1
+  while(length(crit)>0){
+    t0 = grow0_random(x,y,p,N,gamma,node_obs)
+    tree = t0$tree
+    Pmat = t0$Pmat
+
+    ################
+    iter=1
+    while(iter<=d_max){
+      titer=grow_random(x,y,p,N,gamma,node_obs,tree,Pmat,d_max,iter)
+      tree = titer$tree
+      Pmat = titer$Pmat
+      iter = titer$iter
+    }
+    Pmat[is.na(Pmat)]=0
+
+    deep_crit = tree$deep
+    for(kk in 1:length(deep_crit)){
+      l=length(which(Pmat[,kk]>=0.5^deep_crit[kk]))
+      if(l<node_obs){
+        Pmat[,kk]=0
+      }
+    }
+
+
+    aux = rowSums(Pmat)
+    crit = which(aux==0)
+    d_max = d_max-1
+  }
+  ##
+  Pmat = Pmat/rowSums(Pmat)
+
+  betas = coef(lm(y~-1 + Pmat))
+  betas[is.na(betas)] = 0
+  tree$b = betas
+
+  fitted=Pmat%*%tree$b
+  result=list(tree=tree,fitted.values=fitted)
+  return(result)
+}
