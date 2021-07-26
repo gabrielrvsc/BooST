@@ -1,7 +1,7 @@
 Package: BooST
 Type: Package
 Title: Boosting Smooth Trees (BooST)
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(person("Yuri R.", "Fonseca", email="yuriresendefonseca@outlook.com", role = c("aut")),person("Gabriel F. R.", "Vasconcelos", email="gabrielrvsc@yahoo.com.br", role = c("aut", "cre")))
 Maintainer: Gabriel F. R. Vasconcelos <gabrielrvsc@yahoo.com.br>
 BugReports: https://github.com/gabrielrvsc/BooST/issues
@@ -11,4 +11,4 @@ Encoding: UTF-8
 LazyData: true
 Imports: 
     Matrix
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.1

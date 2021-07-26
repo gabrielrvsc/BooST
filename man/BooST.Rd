@@ -4,9 +4,20 @@
 \alias{BooST}
 \title{Estimate BooST}
 \usage{
-BooST(x, y, v = 0.2, p = 2/3, d_max = 4, gamma = seq(0.5, 5, 0.01),
-  M = 300, display = FALSE, stochastic = FALSE, s_prop = 0.5,
-  node_obs = nrow(x)/200)
+BooST(
+  x,
+  y,
+  v = 0.2,
+  p = 2/3,
+  d_max = 4,
+  gamma = seq(0.5, 5, 0.01),
+  M = 300,
+  display = FALSE,
+  stochastic = FALSE,
+  s_prop = 0.5,
+  node_obs = nrow(x)/200,
+  random = FALSE
+)
 }
 \arguments{
 \item{x}{Design matrix with explanatory variables.}
@@ -30,6 +41,8 @@ BooST(x, y, v = 0.2, p = 2/3, d_max = 4, gamma = seq(0.5, 5, 0.01),
 \item{s_prop}{Used only if stochastic=TRUE. Determines the proportion of data used in each tree.}
 
 \item{node_obs}{Equivalent to the minimum number of observations in a termina node for a discrete tree.}
+
+\item{random}{If TRUE trees are grown randomly (default = FALSE)}
 }
 \value{
 An object with S3 class "Boost".

@@ -4,8 +4,15 @@
 \alias{smooth_tree}
 \title{Estimate BooST}
 \usage{
-smooth_tree(x, y, p = 1, d_max = 4, gamma = seq(0.5, 5, 0.01),
-  node_obs = nrow(x)/200)
+smooth_tree(
+  x,
+  y,
+  p = 1,
+  d_max = 4,
+  gamma = seq(0.5, 5, 0.01),
+  node_obs = nrow(x)/200,
+  random = FALSE
+)
 }
 \arguments{
 \item{x}{Design matrix with explanatory variables.}
@@ -19,6 +26,8 @@ smooth_tree(x, y, p = 1, d_max = 4, gamma = seq(0.5, 5, 0.01),
 \item{gamma}{Transiction function intensity. Bigger numbers makes the transition less smoth. The default is a sequence of values (0.5:5) to be randomized in each new node. Multiple values may be supplied in a vector to increase the model randomness.}
 
 \item{node_obs}{Equivalent to the minimum number of observations in a termina node for a discrete tree.}
+
+\item{random}{If TRUE trees are grown randomly (default = FALSE)}
 }
 \value{
 An object with S3 class "SmoothTree".

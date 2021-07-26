@@ -9,6 +9,7 @@
 #' @param d_max Number of splits in each tree (default 4).
 #' @param gamma Transiction function intensity. Bigger numbers makes the transition less smoth. The default is a sequence of values (0.5:5) to be randomized in each new node. Multiple values may be supplied in a vector to increase the model randomness.
 #' @param node_obs Equivalent to the minimum number of observations in a termina node for a discrete tree.
+#' @param random If TRUE trees are grown randomly (default = FALSE)
 #'
 #' @return An object with S3 class "SmoothTree".
 #' \item{Model}{A list with all trees.}
@@ -27,7 +28,10 @@
 # @seealso \code{\link{BooST}}, \code{\link{predict.SmoothTree}},  \code{\link{estimate_derivative}}
 
 
-smooth_tree=function(x, y, p = 1, d_max = 4, gamma = seq(0.5,5,0.01),node_obs=nrow(x)/200){
+smooth_tree=function(x, y, p = 1, d_max = 4, gamma = seq(0.5,5,0.01),node_obs=nrow(x)/200, random = FALSE){
+  if(random==TRUE){
+    grow_tree = grow_tree_random
+  }
   tree=grow_tree(x,y, p = p, d_max = d_max, gamma = gamma, node_obs=node_obs)
   fitted.values=tree$fitted.values
   result=list(tree=tree$tree, fitted.values=fitted.values, nvar = ncol(x) , varnames=colnames(x) ,call=match.call())
